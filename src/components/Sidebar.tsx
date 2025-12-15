@@ -141,6 +141,12 @@ export default function Sidebar({ userRole }: SidebarProps) {
         >
           {t("nav.damagedReturns")}
         </Link>
+        <Link
+          href="/dashboard/damaged-items"
+          className={`nav-link ${isActive("/dashboard/damaged-items") ? "active" : ""}`}
+        >
+          {t("nav.damagedItems")}
+        </Link>
 
         <div className="text-white-50 mt-3 mb-2 px-3 small">{t("nav.activity")}</div>
         <Link
