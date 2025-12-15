@@ -66,7 +66,13 @@
     "logout": "Logout",
     "systemName": "Inventory System",
     "returns": "Returns",
-    "damagedReturns": "Damaged Returns"
+    "damagedReturns": "Damaged Returns",
+    "damagedItems": "Damaged Stock (Resale)"
+  },
+  "damagedItems": {
+    "title": "Damaged Items Stock",
+    "resalePrice": "Resale Price",
+    "setPrice": "Set Price"
   },
   "auth": {
     "login": "Login",
@@ -294,6 +300,7 @@
     "createNewInvoice": "Create New Invoice",
     "viewInvoice": "View Invoice",
     "printInvoice": "Print Invoice",
+    "damagedStock": "Damaged Items Stock",
     "amount": "Amount",
     "invoiceNumber": "Invoice #",
     "customer": "Customer",
@@ -340,6 +347,7 @@
     "addAtLeastOneItem": "Please add at least one item",
     "creating": "Creating...",
     "processing": "Processing...",
+    "uniqueDamagedItem": "Damaged items are unique (qty 1)",
     "qty": "Qty",
     "email": "Email",
     "phone": "Phone",
@@ -518,5 +526,10 @@
       "DAMAGED": "Damaged",
       "NON_DAMAGED": "Non-Damaged"
     }
+  },
+  "status": {
+    "AVAILABLE": "Available",
+    "SOLD": "Sold",
+    "DISCARDED": "Discarded"
   }
 }

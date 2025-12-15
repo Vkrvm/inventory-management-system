@@ -66,7 +66,13 @@
     "logout": "تسجيل الخروج",
     "systemName": "نظام المخزون",
     "returns": "المرتجعات",
-    "damagedReturns": "مرتجعات تالفة"
+    "damagedReturns": "مرتجعات تالفة",
+    "damagedItems": "مخزون التالف (بيع)"
+  },
+  "damagedItems": {
+    "title": "مخزون الأصناف التالفة",
+    "resalePrice": "سعر البيع",
+    "setPrice": "تحديد السعر"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -295,6 +301,7 @@
     "createNewInvoice": "إنشاء فاتورة جديدة",
     "viewInvoice": "عرض الفاتورة",
     "printInvoice": "طباعة الفاتورة",
+    "damagedStock": "مخزن التالف",
     "amount": "المبلغ",
     "invoiceNumber": "فاتورة #",
     "customer": "العميل",
@@ -341,6 +348,7 @@
     "addAtLeastOneItem": "يرجى إضافة صنف واحد على الأقل",
     "creating": "جاري الإنشاء...",
     "processing": "جاري المعالجة...",
+    "uniqueDamagedItem": "الأصناف التالفة فريدة (الكمية 1)",
     "qty": "الكمية",
     "email": "البريد الإلكتروني",
     "phone": "الهاتف",
@@ -519,5 +527,10 @@
       "DAMAGED": "تالف",
       "NON_DAMAGED": "غير تالف"
     }
+  },
+  "status": {
+    "AVAILABLE": "متاح",
+    "SOLD": "مباع",
+    "DISCARDED": "تالف"
   }
 }
