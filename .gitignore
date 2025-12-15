@@ -35,4 +35,10 @@ next-env.d.ts
 
 # prisma
 prisma/*.db
+prisma/*.db
 prisma/*.db-journal
+
+# agent
+.claude/
+.gemini/
+
