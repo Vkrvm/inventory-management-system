@@ -23,7 +23,14 @@ interface Stock {
 export default function StockClient({ stocks, warehouses, materials, products, categories }: any) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"view" | "in" | "out" | "transfer">("view");
-  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
+  // Default to first warehouse if available
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>(warehouses.length > 0 ? warehouses[0].id : "");
+
+  // Filters
+  const [filterCategory, setFilterCategory] = useState<string>("");
+  const [filterBrand, setFilterBrand] = useState<string>("");
+  const [filterColor, setFilterColor] = useState<string>("");
+
   const [alert, setAlert] = useState<{ type: "success" | "danger"; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -49,11 +56,28 @@ export default function StockClient({ stocks, warehouses, materials, products, c
     notes: "",
   });
 
+  // Extract unique brands and colors
+  const brands = Array.from(new Set(products.map((p: any) => JSON.stringify({ id: p.brand.id, name: p.brand.name })))).map((b: any) => JSON.parse(b));
+
+  // Extract all unique colors from all product variants
+  const allColors = Array.from(new Set(
+    products.flatMap((p: any) => p.variants?.map((v: any) => v.color) || [])
+  )).sort();
+
   // Filter stocks
   const filteredStocks = stocks.filter((stock: Stock) => {
-    if (selectedWarehouseId && stock.warehouse.id !== selectedWarehouseId) {
+    // Warehouse Filter (Always active now)
+    if (stock.warehouse.id !== selectedWarehouseId) {
       return false;
     }
+
+    // Advanced Filters (Only for Products)
+    if (stock.productVariant) {
+      if (filterCategory && stock.productVariant.product.category.id !== filterCategory) return false;
+      if (filterBrand && stock.productVariant.product.brand.id !== filterBrand) return false;
+      if (filterColor && stock.productVariant.color !== filterColor) return false;
+    }
+
     return true;
   });
 
@@ -154,6 +178,16 @@ export default function StockClient({ stocks, warehouses, materials, products, c
     category: c,
   }));
 
+  const brandOptions = brands.map((b: any) => ({
+    value: b.id,
+    label: b.name
+  }));
+
+  const colorOptions = allColors.map((c: any) => ({
+    value: c,
+    label: c
+  }));
+
   const getProductOptions = (categoryId: string) => {
     return productVariants
       .filter((v: any) => !categoryId || v.product.category.id === categoryId)
@@ -163,6 +197,9 @@ export default function StockClient({ stocks, warehouses, materials, products, c
         variant: v,
       }));
   };
+
+  // Determine current warehouse type for valid filtering UI
+  const selectedWarehouse = warehouses.find((w: any) => w.id === selectedWarehouseId);
 
   return (
     <>
@@ -206,25 +243,66 @@ export default function StockClient({ stocks, warehouses, materials, products, c
         <div>
           {/* Warehouse Filtering Tabs (Pills) */}
           <ul className="nav nav-pills mb-3">
-            <li className="nav-item">
-              <button
-                className={`nav-link ${selectedWarehouseId === "" ? "active" : ""}`}
-                onClick={() => setSelectedWarehouseId("")}
-              >
-                {t("stock.allWarehouses")}
-              </button>
-            </li>
+            {/* All Warehouses Option Removed */}
             {warehouses.map((w: any) => (
               <li className="nav-item" key={w.id}>
                 <button
                   className={`nav-link ${selectedWarehouseId === w.id ? "active" : ""}`}
-                  onClick={() => setSelectedWarehouseId(w.id)}
+                  onClick={() => {
+                    setSelectedWarehouseId(w.id);
+                    // Reset filters on warehouse change
+                    setFilterCategory("");
+                    setFilterBrand("");
+                    setFilterColor("");
+                  }}
                 >
                   {w.name}
                 </button>
               </li>
             ))}
           </ul>
+
+          {/* Filters for Product Warehouse */}
+          {selectedWarehouse?.type === "PRODUCT" && (
+            <div className="row mb-4">
+              <div className="col-md-3">
+                <Select
+                  options={categoryOptions}
+                  value={categoryOptions.find((o: any) => o.value === filterCategory) || null}
+                  onChange={(val: any) => setFilterCategory(val?.value || "")}
+                  placeholder={t("products.selectCategory")}
+                  isClearable
+                />
+              </div>
+              <div className="col-md-3">
+                <Select
+                  options={brandOptions}
+                  value={brandOptions.find((o: any) => o.value === filterBrand) || null}
+                  onChange={(val: any) => setFilterBrand(val?.value || "")}
+                  placeholder={t("products.selectBrand")}
+                  isClearable
+                />
+              </div>
+              <div className="col-md-3">
+                <Select
+                  options={colorOptions}
+                  value={colorOptions.find((o: any) => o.value === filterColor) || null}
+                  onChange={(val: any) => setFilterColor(val?.value || "")}
+                  placeholder={t("products.color")}
+                  isClearable
+                />
+              </div>
+              <div className="col-md-3 d-flex align-items-center">
+                <button className="btn btn-outline-secondary w-100" onClick={() => {
+                  setFilterCategory("");
+                  setFilterBrand("");
+                  setFilterColor("");
+                }}>
+                  {t("common.filter")} ({t("common.delete")})
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="card">
             <div className="card-body">
