@@ -61,6 +61,54 @@ export async function registerCustomerPayment(data: {
         },
       });
 
+      // --- AUTO-SETTLE INVOICE LOGIC ---
+      // 1. Find all UNPAID or PARTIAL invoices for this customer, oldest first
+      const unpaidInvoices = await tx.invoice.findMany({
+        where: {
+          customerId: data.customerId,
+          status: { in: ["UNPAID", "PARTIAL"] },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
+      let remainingPayment = data.amount;
+
+      // 2. Distribute payment to invoices
+      for (const inv of unpaidInvoices) {
+        if (remainingPayment <= 0) break;
+
+        const amountToPay = Math.min(remainingPayment, inv.remainingBalance);
+
+        if (amountToPay > 0) {
+          // Create Payment record for the invoice
+          await tx.payment.create({
+            data: {
+              invoiceId: inv.id,
+              amount: amountToPay,
+              notes: `Auto-settled via Register Customer Payment (Ref: ${payment.id})`,
+              paymentDate: new Date(),
+            },
+          });
+
+          // Update Invoice status and balance
+          const newPaidAmount = inv.paidAmount + amountToPay;
+          const newRemaining = inv.remainingBalance - amountToPay; // Should guard against slight float errors?
+          const newStatus = newRemaining <= 0.01 ? "PAID" : "PARTIAL"; // Tolerance for float
+
+          await tx.invoice.update({
+            where: { id: inv.id },
+            data: {
+              paidAmount: newPaidAmount,
+              remainingBalance: newRemaining,
+              status: newStatus,
+            },
+          });
+
+          remainingPayment -= amountToPay;
+        }
+      }
+      // ---------------------------------
+
       return { payment, updatedCustomer };
     });
 
