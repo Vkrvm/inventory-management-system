@@ -41,7 +41,8 @@
     "pcs": "قطعة",
     "lastUpdated": "آخر تحديث",
     "optionalNotes": "ملاحظات اختيارية",
-    "amount": "المبلغ"
+    "amount": "المبلغ",
+    "noItemsFound": "لا توجد عناصر"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -72,6 +73,7 @@
   "damagedItems": {
     "title": "مخزون الأصناف التالفة",
     "resalePrice": "سعر البيع",
+    "resale": "إعادة بيع",
     "setPrice": "تحديد السعر"
   },
   "auth": {
@@ -442,7 +444,79 @@
       "previousBalance": "الرصيد السابق",
       "newBalance": "الرصيد الجديد",
       "changes": "التغييرات",
-      "invoiceId": "معرف الفاتورة"
+      "invoiceId": "معرف الفاتورة",
+      "itemsCount": "عدد العناصر",
+      "role": "الدور",
+      "newRole": "الدور الجديد",
+      "email": "البريد الإلكتروني",
+      "description": "الوصف",
+      "invoiceCreator": "منشئ الفاتورة"
+    },
+    "actions": {
+      "CREATE_INVOICE": "إنشاء فاتورة",
+      "INVOICE_CREATED": "تم إنشاء فاتورة",
+      "UPDATE_INVOICE": "تحديث فاتورة",
+      "CREATE_RETURN": "إنشاء مرتجع",
+      "RETURN_CREATED": "تم إنشاء مرتجع",
+      "ADD_PAYMENT": "إضافة دفعة",
+      "CREATE_CUSTOMER": "إنشاء عميل",
+      "UPDATE_CUSTOMER": "تحديث عميل",
+      "CREATE_PRODUCT": "إنشاء منتج",
+      "UPDATE_PRODUCT": "تحديث منتج",
+      "UPDATE_STOCK": "تحديث مخزون",
+      "TRANSFER_STOCK": "نقل مخزون",
+      "STOCK_MOVEMENT": "حركة مخزون",
+      "LOGIN": "تسجيل دخول",
+      "LOGOUT": "تسجيل خروج",
+      "DAMAGED_ITEM_UPDATE": "تحديث عنصر تالف",
+      "CREDIT_REFUND": "استرداد رصيد",
+      "INVOICE_PAYMENT_CREDIT": "دفع بالرصيد",
+      "REGISTER_PAYMENT": "تم تسجيل دفعة",
+      "STOCK_IN": "إدخال مخزون",
+      "CREATE_MATERIAL": "إنشاء مادة",
+      "CREATE_UNIT": "إنشاء وحدة",
+      "CREATE_PRODUCT_VARIANT": "إنشاء شكل للمنتج",
+      "DELETE_PRODUCT": "حذف منتج",
+      "CREATE_WAREHOUSE": "إنشاء مخزن",
+      "UPDATE_USER_ROLE": "تحديث دور المستخدم",
+      "RESET_PASSWORD": "إعادة تعيين كلمة المرور",
+      "CREATE_USER": "إنشاء مستخدم",
+      "UPDATE_MATERIAL": "تحديث مادة",
+      "UPDATE_PREFERENCES": "تحديث التفضيلات"
+    },
+    "entities": {
+      "Invoice": "فاتورة",
+      "Customer": "عميل",
+      "Product": "منتج",
+      "ProductVariant": "شكل المنتج",
+      "Return": "مرتجع",
+      "Stock": "مخزون",
+      "StockMovement": "حركة مخزون",
+      "CustomerPayment": "دفعة عميل",
+      "User": "مستخدم",
+      "Warehouse": "مخزن",
+      "Material": "مادة",
+      "Unit": "وحدة",
+      "Brand": "علامة تجارية",
+      "Category": "فئة",
+      "Payment": "دفعة",
+      "DamagedItem": "عنصر تالف"
+    },
+    "values": {
+      "DAMAGED": "تالف",
+      "NON_DAMAGED": "غير تالف",
+      "PAID": "مدفوع",
+      "UNPAID": "غير مدفوع",
+      "PARTIAL": "جزئي",
+      "CASH": "نقدي",
+      "CREDIT": "آجل",
+      "AVAILABLE": "متاح",
+      "SOLD": "مباع",
+      "DISCARDED": "مهمل",
+      "IN": "وارد",
+      "OUT": "صادر",
+      "TRANSFER": "نقل",
+      "ADJUSTMENT": "تسوية"
     }
   },
   "settings": {

@@ -86,11 +86,27 @@ export default function HistoryClient({ history }: any) {
                     </td>
                     <td>
                       <span className={`badge ${getActionBadge(h.action)}`}>
-                        {h.action.replace(/_/g, " ")}
+                        {(() => {
+                          const key = `history.actions.${h.action}` as any;
+                          const translation = t(key);
+                          return (translation !== key && translation !== h.action && !translation.includes("history.actions"))
+                            ? translation
+                            : h.action.replace(/_/g, " ");
+                        })()}
                       </span>
                     </td>
                     <td>
-                      {h.entity && <span className="badge bg-light text-dark">{h.entity}</span>}
+                      {h.entity && (
+                        <span className="badge bg-light text-dark">
+                          {(() => {
+                            const key = `history.entities.${h.entity}` as any;
+                            const translation = t(key);
+                            return (translation !== key && translation !== h.entity && !translation.includes("history.entities"))
+                              ? translation
+                              : h.entity;
+                          })()}
+                        </span>
+                      )}
                     </td>
                     <td>
                       <HistoryDetails action={h.action} details={h.details} />

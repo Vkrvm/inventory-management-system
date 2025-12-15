@@ -14,7 +14,15 @@ export function HistoryDetails({ action, details }: HistoryDetailsProps) {
     if (!details) return null;
 
     // Ensure details is an object
-    const parsedDetails = typeof details === "string" ? JSON.parse(details) : details;
+    let parsedDetails = details;
+    if (typeof details === "string") {
+        try {
+            parsedDetails = JSON.parse(details);
+        } catch (e) {
+            // If parsing fails, treat string as a simple message
+            parsedDetails = { description: details };
+        }
+    }
 
     // Helper to translate or format a label
     const getLabel = (key: string) => {
@@ -48,6 +56,23 @@ export function HistoryDetails({ action, details }: HistoryDetailsProps) {
 
         if (key === "newQuantity" || key === "quantity" || key === "itemCount") {
             return Number(value).toLocaleString(locale);
+        }
+
+        if (typeof value === "string") {
+            // Only attempt translation for known enum values to avoid "Translation missing" warnings
+            const KNOWN_VALUES = [
+                "DAMAGED", "NON_DAMAGED", "PAID", "UNPAID", "PARTIAL",
+                "CASH", "CREDIT", "AVAILABLE", "SOLD", "DISCARDED",
+                "IN", "OUT", "TRANSFER", "ADJUSTMENT"
+            ];
+
+            if (KNOWN_VALUES.includes(value)) {
+                const valueKey = `history.values.${value}` as any;
+                const translation = t(valueKey);
+                if (translation !== valueKey && translation !== value && !translation.includes("history.values")) {
+                    return translation;
+                }
+            }
         }
 
         if (typeof value === "string" && !isNaN(Date.parse(value)) && value.length > 20) {

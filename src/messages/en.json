@@ -41,7 +41,8 @@
     "pcs": "PCS",
     "lastUpdated": "Last Updated",
     "optionalNotes": "Optional notes",
-    "amount": "Amount"
+    "amount": "Amount",
+    "noItemsFound": "No items found"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -72,6 +73,7 @@
   "damagedItems": {
     "title": "Damaged Items Stock",
     "resalePrice": "Resale Price",
+    "resale": "Resale",
     "setPrice": "Set Price"
   },
   "auth": {
@@ -441,7 +443,79 @@
       "previousBalance": "Previous Balance",
       "newBalance": "New Balance",
       "changes": "Changes",
-      "invoiceId": "Invoice ID"
+      "invoiceId": "Invoice ID",
+      "itemsCount": "Items Count",
+      "role": "Role",
+      "newRole": "New Role",
+      "email": "Email",
+      "description": "Description",
+      "invoiceCreator": "Invoice Creator"
+    },
+    "actions": {
+      "CREATE_INVOICE": "Invoice Created",
+      "INVOICE_CREATED": "Invoice Created",
+      "UPDATE_INVOICE": "Invoice Updated",
+      "CREATE_RETURN": "Return Created",
+      "RETURN_CREATED": "Return Created",
+      "ADD_PAYMENT": "Payment Added",
+      "CREATE_CUSTOMER": "Customer Created",
+      "UPDATE_CUSTOMER": "Customer Updated",
+      "CREATE_PRODUCT": "Product Created",
+      "UPDATE_PRODUCT": "Product Updated",
+      "UPDATE_STOCK": "Stock Updated",
+      "TRANSFER_STOCK": "Stock Transferred",
+      "STOCK_MOVEMENT": "Stock Movement",
+      "LOGIN": "User Login",
+      "LOGOUT": "User Logout",
+      "DAMAGED_ITEM_UPDATE": "Damaged Item Updated",
+      "CREDIT_REFUND": "Credit Refund",
+      "INVOICE_PAYMENT_CREDIT": "Credit Payment",
+      "REGISTER_PAYMENT": "Payment Registered",
+      "STOCK_IN": "Stock In",
+      "CREATE_MATERIAL": "Material Created",
+      "CREATE_UNIT": "Unit Created",
+      "CREATE_PRODUCT_VARIANT": "Variant Created",
+      "DELETE_PRODUCT": "Product Deleted",
+      "CREATE_WAREHOUSE": "Warehouse Created",
+      "UPDATE_USER_ROLE": "User Role Updated",
+      "RESET_PASSWORD": "Password Reset",
+      "CREATE_USER": "User Created",
+      "UPDATE_MATERIAL": "Material Updated",
+      "UPDATE_PREFERENCES": "Preferences Updated"
+    },
+    "entities": {
+      "Invoice": "Invoice",
+      "Customer": "Customer",
+      "Product": "Product",
+      "ProductVariant": "Product Variant",
+      "Return": "Return",
+      "Stock": "Stock",
+      "StockMovement": "Stock Movement",
+      "CustomerPayment": "Customer Payment",
+      "User": "User",
+      "Warehouse": "Warehouse",
+      "Material": "Material",
+      "Unit": "Unit",
+      "Brand": "Brand",
+      "Category": "Category",
+      "Payment": "Payment",
+      "DamagedItem": "Damaged Item"
+    },
+    "values": {
+      "DAMAGED": "Damaged",
+      "NON_DAMAGED": "Non-Damaged",
+      "PAID": "Paid",
+      "UNPAID": "Unpaid",
+      "PARTIAL": "Partial",
+      "CASH": "Cash",
+      "CREDIT": "Credit",
+      "AVAILABLE": "Available",
+      "SOLD": "Sold",
+      "DISCARDED": "Discarded",
+      "IN": "In",
+      "OUT": "Out",
+      "TRANSFER": "Transfer",
+      "ADJUSTMENT": "Adjustment"
     }
   },
   "settings": {

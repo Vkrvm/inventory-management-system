@@ -28,7 +28,27 @@ export async function createReturn(data: CreateReturnInput) {
             include: {
                 customer: true,
                 items: true,
+                user: true, // Include creator
             },
+        });
+
+        // ... (lines 34-211 skipped for brevity, keeping them as is)
+
+        // 7. Log History
+        await tx.history.create({
+            data: {
+                action: "RETURN_CREATED",
+                entity: "Return",
+                entityId: newReturn.id,
+                userId,
+                details: JSON.stringify({
+                    invoiceNumber: invoice.invoiceNumber,
+                    invoiceCreator: invoice.user?.name || "Unknown",
+                    amount: totalAmount,
+                    type,
+                    itemsCount: items.length
+                })
+            }
         });
 
         if (!invoice) {
