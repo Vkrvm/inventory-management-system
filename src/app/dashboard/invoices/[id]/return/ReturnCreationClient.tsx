@@ -104,6 +104,7 @@ export default function ReturnCreationClient({ invoice, previousReturns }: any) 
                     <thead>
                         <tr>
                             <th>{t("returns.item")}</th>
+                            <th>{t("invoices.category")}</th>
                             <th>{t("returns.soldQty")}</th>
                             <th>{t("returns.previouslyReturned")}</th>
                             <th>{t("returns.returnQty")}</th>
@@ -119,8 +120,10 @@ export default function ReturnCreationClient({ invoice, previousReturns }: any) 
                             return (
                                 <tr key={item.id}>
                                     <td>
-                                        {item.productVariant.product.code} - {item.productVariant.color}
+                                        <strong>{item.productVariant.product.code}</strong><br />
+                                        <small className="text-muted">{item.productVariant.product.brand.name} - {item.productVariant.color}</small>
                                     </td>
+                                    <td>{item.productVariant.product.category.name}</td>
                                     <td>{item.quantity}</td>
                                     <td>{previous}</td>
                                     <td>

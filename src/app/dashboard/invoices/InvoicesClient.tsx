@@ -11,13 +11,13 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useUserPreferences } from "@/contexts/UserPreferencesContext";
 import Select from "react-select";
 
-export default function InvoicesClient({ invoices, customers, products, warehouses, currentUser }: any) {
+export default function InvoicesClient({ invoices, customers, products, warehouses, damagedItems, currentUser }: any) {
   const { t } = useTranslation();
   const { formatPrice } = useUserPreferences();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
-  const [alert, setAlert] = useState<{ type: "success" | "danger"; message: string } | null>(null);
+  const [alert, setAlert] = useState<{ type: "success" | "danger" | "warning"; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [payWithCredit, setPayWithCredit] = useState(false);
 
@@ -28,13 +28,14 @@ export default function InvoicesClient({ invoices, customers, products, warehous
     discountValue: 0,
     warehouseId: "",
     notes: "",
-    items: [] as Array<{ productVariantId: string; quantity: number; price: number }>,
+    items: [] as Array<{ productVariantId: string; quantity: number; price: number; damagedItemId?: string }>,
   });
 
   const [currentItem, setCurrentItem] = useState({
     productVariantId: "",
     quantity: 1,
     price: 0,
+    damagedItemId: undefined as string | undefined, // Track selected damaged item
   });
 
   const addItemToInvoice = () => {
@@ -48,7 +49,7 @@ export default function InvoicesClient({ invoices, customers, products, warehous
       items: [...invoiceForm.items, { ...currentItem }],
     });
 
-    setCurrentItem({ productVariantId: "", quantity: 1, price: 0 });
+    setCurrentItem({ productVariantId: "", quantity: 1, price: 0, damagedItemId: undefined });
   };
 
   const removeItem = (index: number) => {
@@ -170,11 +171,38 @@ export default function InvoicesClient({ invoices, customers, products, warehous
   const productVariants = getProductVariants();
 
   // Format product variants for react-select
-  const productOptions = productVariants.map((v: any) => ({
-    value: v.id,
-    label: `${v.product.category.name} | ${v.product.brand.name} ${v.product.code} - ${v.color}`,
-    variant: v,
-  }));
+  // Format product variants for react-select
+  const productOptions = [
+    // Regular variants - Only show if a regular warehouse is selected AND stock exists
+    ...(invoiceForm.warehouseId && invoiceForm.warehouseId !== "DAMAGED_STOCK"
+      ? productVariants
+        .filter((v: any) => {
+          // Find stock for this variant in the selected warehouse
+          const stock = v.stocks?.find((s: any) => s.warehouseId === invoiceForm.warehouseId);
+          return stock && stock.quantity > 0;
+        })
+        .map((v: any) => {
+          const stock = v.stocks?.find((s: any) => s.warehouseId === invoiceForm.warehouseId);
+          return {
+            value: v.id,
+            label: `${v.product.category.name} | ${v.product.brand.name} ${v.product.code} - ${v.color} (Qty: ${stock?.quantity || 0})`,
+            variant: v,
+            isDamaged: false
+          };
+        })
+      : []),
+
+    // Damaged items - Only show if DAMAGED_STOCK is selected
+    ...(invoiceForm.warehouseId === "DAMAGED_STOCK" ? (damagedItems || []).map((d: any) => ({
+      value: d.productVariantId,
+      uniqueId: `damaged_${d.id}`,
+      damagedId: d.id,
+      label: `${d.productVariant.product.code} - ${d.productVariant.color} (${formatPrice(d.resalePrice)})`,
+      variant: d.productVariant,
+      price: d.resalePrice,
+      isDamaged: true
+    })) : [])
+  ];
 
   const getStatusBadge = (status: InvoiceStatus) => {
     switch (status) {
@@ -298,11 +326,13 @@ export default function InvoicesClient({ invoices, customers, products, warehous
                         required
                       >
                         <option value="">{t("invoices.selectWarehouse")}</option>
+                        <option value="">{t("invoices.selectWarehouse")}</option>
                         {warehouses.filter((w: any) => w.type === "PRODUCT").map((w: any) => (
                           <option key={w.id} value={w.id}>
                             {w.name}
                           </option>
                         ))}
+                        <option value="DAMAGED_STOCK">{t("invoices.damagedStock")}</option>
                       </select>
                     </div>
                   </div>
@@ -387,13 +417,37 @@ export default function InvoicesClient({ invoices, customers, products, warehous
                       <label className="form-label">{t("invoices.product")}</label>
                       <Select
                         options={productOptions}
-                        value={productOptions.find((opt: any) => opt.value === currentItem.productVariantId) || null}
-                        onChange={(option: any) => setCurrentItem({ ...currentItem, productVariantId: option?.value || "" })}
+                        // We need to match by uniqueId if damaged, or value (variantId) if regular.
+                        // Since we changed options structure, let's adjust value matching.
+                        value={productOptions.find((opt: any) => {
+                          if (currentItem.damagedItemId) {
+                            return opt.damagedId === currentItem.damagedItemId;
+                          }
+                          return opt.value === currentItem.productVariantId && !opt.isDamaged;
+                        }) || null}
+                        onChange={(option: any) => {
+                          if (option?.isDamaged) {
+                            setCurrentItem({
+                              productVariantId: option.variant.id,
+                              quantity: 1, // Locked to 1 for damaged unique item
+                              price: option.price,
+                              damagedItemId: option.damagedId
+                            });
+                          } else {
+                            setCurrentItem({
+                              productVariantId: option?.value || "",
+                              quantity: 1,
+                              price: 0,
+                              damagedItemId: undefined
+                            });
+                          }
+                        }}
                         placeholder={t("invoices.selectProduct")}
                         isClearable
                         isSearchable
                         className="react-select-container"
                         classNamePrefix="react-select"
+                        getOptionValue={(option: any) => option.isDamaged ? option.uniqueId : option.value}
                         styles={{
                           control: (base) => ({
                             ...base,
@@ -415,7 +469,9 @@ export default function InvoicesClient({ invoices, customers, products, warehous
                         value={currentItem.quantity}
                         onChange={(e) => setCurrentItem({ ...currentItem, quantity: parseInt(e.target.value) || 1 })}
                         min="1"
+                        disabled={!!currentItem.damagedItemId}
                       />
+                      {currentItem.damagedItemId && <div className="form-text text-warning">{t("invoices.uniqueDamagedItem")}</div>}
                     </div>
                     <div className="col-md-3 mb-3">
                       <label className="form-label">{t("invoices.price")}</label>

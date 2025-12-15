@@ -10,7 +10,12 @@ export default async function ReturnCreationPage({ params }: { params: { id: str
                 include: {
                     productVariant: {
                         include: {
-                            product: true
+                            product: {
+                                include: {
+                                    category: true,
+                                    brand: true
+                                }
+                            }
                         }
                     }
                 }
