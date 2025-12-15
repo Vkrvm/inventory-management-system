@@ -102,7 +102,9 @@ export async function createReturn(data: CreateReturnInput) {
             // LIMITATION: This might be inaccurate if multiple warehouses exist.
             // Fix: We'll fetch the first warehouse that has this item, or just any warehouse of type PRODUCT.
 
+            // 5. Handle Stock Logic & Damaged Items
             if (type === "NON_DAMAGED") {
+                // ... Existing Logic for NON_DAMAGED ...
                 const warehouse = await tx.warehouse.findFirst({
                     where: { type: "PRODUCT" } // Simplification
                 });
@@ -143,6 +145,33 @@ export async function createReturn(data: CreateReturnInput) {
                                 warehouseToId: warehouse.id,
                                 userId,
                                 notes: `Return #${newReturn.id} (Invoice #${invoice.invoiceNumber})`
+                            }
+                        });
+                    }
+                }
+            } else if (type === "DAMAGED") {
+                // For DAMAGED returns, we create individual DamagedItem records for each unit.
+                // We do NOT add them back to regular Stock.
+
+                // Fetch ReturnItems to get IDs
+                const createdReturnItems = await tx.returnItem.findMany({
+                    where: { returnId: newReturn.id }
+                });
+
+                // Map variantId -> ReturnItem (assuming unique variant per return, OR we match by other means)
+                // Note: items array might have multiple entries for same variant? Usually discouraged but possible.
+                // Better to iterate items input and match with createdReturnItems.
+
+                // Simplification for match: productVariantId
+                for (const retItem of createdReturnItems) {
+                    // Create N records for N quantity
+                    for (let i = 0; i < retItem.quantity; i++) {
+                        await tx.damagedItem.create({
+                            data: {
+                                returnItemId: retItem.id,
+                                productVariantId: retItem.productVariantId,
+                                status: "AVAILABLE",
+                                resalePrice: 0 // Default price, admin sets later
                             }
                         });
                     }
@@ -203,9 +232,11 @@ export async function createReturn(data: CreateReturnInput) {
         revalidatePath(`/dashboard/invoices/${invoiceId}`);
         return { success: true, returnId: returnRecord.id };
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error creating return:", error);
-        return { success: false, error: "Failed to create return" };
+        // Return more specific error if possible (e.g. Prisma error)
+        const errorMessage = error instanceof Error ? error.message : "Failed to create return";
+        return { success: false, error: errorMessage };
     }
 }
 

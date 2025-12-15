@@ -105,9 +105,7 @@ export async function getProducts() {
         brand: true,
         variants: {
           include: {
-            _count: {
-              select: { stocks: true },
-            },
+            stocks: true,
           },
         },
       },

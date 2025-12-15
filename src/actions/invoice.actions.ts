@@ -21,6 +21,7 @@ export async function createInvoice(formData: {
     productVariantId: string;
     quantity: number;
     price: number;
+    damagedItemId?: string; // Optional: If selling a specific damaged item
   }>;
   warehouseId: string;
   notes?: string;
@@ -50,20 +51,40 @@ export async function createInvoice(formData: {
     let remainingBalance: number;
 
     if (paymentType === PaymentType.CASH) {
-      // CASH invoices: marked as PAID immediately
       status = InvoiceStatus.PAID;
       paidAmount = finalTotal;
       remainingBalance = 0;
     } else {
-      // CREDIT invoices: don't track payment status in invoice
-      // Account balance is managed separately in Customer model
-      status = InvoiceStatus.UNPAID; // This is legacy, not used for credit
+      status = InvoiceStatus.UNPAID;
       paidAmount = 0;
-      remainingBalance = finalTotal; // Legacy field, kept for compatibility
+      remainingBalance = finalTotal;
     }
 
     // Create invoice with items and update customer balance in transaction
     const invoice = await prisma.$transaction(async (tx) => {
+      // 1. Validate Damaged Items if any
+      for (const item of items) {
+        if (item.damagedItemId) {
+          // Verify it exists and is AVAILABLE
+          const damagedItem = await tx.damagedItem.findUnique({
+            where: { id: item.damagedItemId }
+          });
+
+          if (!damagedItem || damagedItem.status !== "AVAILABLE") {
+            throw new Error(`Damaged item ${item.damagedItemId} is not available for sale.`);
+          }
+
+          // Mark as SOLD
+          await tx.damagedItem.update({
+            where: { id: item.damagedItemId },
+            data: {
+              status: "SOLD",
+              soldAt: new Date()
+            }
+          });
+        }
+      }
+
       const newInvoice = await tx.invoice.create({
         data: {
           invoiceNumber: generateInvoiceNumber(),
@@ -84,6 +105,7 @@ export async function createInvoice(formData: {
               quantity: item.quantity,
               price: item.price,
               total: item.price * item.quantity,
+              damagedItemId: item.damagedItemId // Link if present
             })),
           },
         },
@@ -121,8 +143,15 @@ export async function createInvoice(formData: {
       return newInvoice;
     });
 
-    // Reduce stock for each item
+    // Reduce stock for each item (ONLY if NOT a damaged item resale)
     for (const item of items) {
+      if (item.damagedItemId) {
+        // If it's a damaged item, we already marked it as SOLD in the transaction.
+        // We do NOT deduct from regular stock because damaged items are theoretically "outside" of regular stock counts 
+        // (they were removed from stock when returned as DAMAGED).
+        continue;
+      }
+
       const stock = await prisma.stock.findFirst({
         where: {
           warehouseId,
