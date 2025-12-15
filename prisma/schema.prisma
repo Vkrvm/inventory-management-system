@@ -1,0 +1,457 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ========================
+// USER & AUTH
+// ========================
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  SALES
+  WAREHOUSE
+}
+
+enum Language {
+  AR
+  EN
+}
+
+enum Currency {
+  EGP
+  USD
+  TRY
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  role          UserRole  @default(SALES)
+  language      Language  @default(AR)
+  currency      Currency  @default(EGP)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  histories     History[]
+  stockMovements StockMovement[]
+  invoices      Invoice[]
+  returns       Return[]
+  creditTransactions CreditTransaction[]
+}
+
+// ========================
+// WAREHOUSES
+// ========================
+enum WarehouseType {
+  MATERIAL
+  PRODUCT
+}
+
+model Warehouse {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  type          WarehouseType
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  stocks        Stock[]
+  stockMovementsFrom StockMovement[] @relation("WarehouseFrom")
+  stockMovementsTo   StockMovement[] @relation("WarehouseTo")
+}
+
+// ========================
+// MATERIALS
+// ========================
+// Keep MaterialUnit enum for backward compatibility during migration
+enum MaterialUnit {
+  KG
+  METER
+  PIECE
+}
+
+model Unit {
+  id            String       @id @default(cuid())
+  name          String       @unique
+  abbreviation  String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  materials     Material[]
+}
+
+model Material {
+  id            String        @id @default(cuid())
+  name          String        @unique
+  unitId        String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  unit          Unit          @relation(fields: [unitId], references: [id])
+  stocks        Stock[]
+  stockMovements StockMovement[]
+}
+
+// ========================
+// PRODUCTS
+// ========================
+// Keep ProductType enum for backward compatibility during migration
+enum ProductType {
+  WALLET
+  BELT
+  BAG
+  ACCESSORY
+  OTHER
+}
+
+model Brand {
+  id            String          @id @default(cuid())
+  name          String          @unique
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  products      Product[]
+}
+
+model ProductCategory {
+  id            String          @id @default(cuid())
+  name          String          @unique
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  products      Product[]
+}
+
+model Product {
+  id            String          @id @default(cuid())
+  categoryId    String
+  brandId       String
+  code          String
+  description   String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  category      ProductCategory @relation(fields: [categoryId], references: [id])
+  brand         Brand           @relation(fields: [brandId], references: [id])
+  variants      ProductVariant[]
+
+  // Composite unique constraint: categoryId + brandId + code
+  @@unique([categoryId, brandId, code])
+}
+
+model ProductVariant {
+  id            String    @id @default(cuid())
+  productId     String
+  color         String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  stocks        Stock[]
+  invoiceItems  InvoiceItem[]
+  stockMovements StockMovement[]
+  returnItems    ReturnItem[]
+
+  // Unique: productId + color
+  @@unique([productId, color])
+}
+
+// ========================
+// STOCK MANAGEMENT
+// ========================
+model Stock {
+  id                String           @id @default(cuid())
+  warehouseId       String
+  quantity          Int              @default(0)
+
+  // Either materialId OR productVariantId (enforced at application level)
+  materialId        String?
+  productVariantId  String?
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relations
+  warehouse         Warehouse        @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  material          Material?        @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  productVariant    ProductVariant?  @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+
+  // Ensure unique stock per warehouse per item
+  @@unique([warehouseId, materialId])
+  @@unique([warehouseId, productVariantId])
+}
+
+enum MovementType {
+  IN
+  OUT
+  TRANSFER
+  ADJUSTMENT
+}
+
+model StockMovement {
+  id                  String           @id @default(cuid())
+  type                MovementType
+  quantity            Int
+
+  // Source/Destination warehouses (for TRANSFER)
+  warehouseFromId     String?
+  warehouseToId       String?
+
+  // Either materialId OR productVariantId
+  materialId          String?
+  productVariantId    String?
+
+  // User who performed the movement
+  userId              String
+
+  notes               String?
+  createdAt           DateTime         @default(now())
+
+  // Relations
+  warehouseFrom       Warehouse?       @relation("WarehouseFrom", fields: [warehouseFromId], references: [id])
+  warehouseTo         Warehouse?       @relation("WarehouseTo", fields: [warehouseToId], references: [id])
+  material            Material?        @relation(fields: [materialId], references: [id])
+  productVariant      ProductVariant?  @relation(fields: [productVariantId], references: [id])
+  user                User             @relation(fields: [userId], references: [id])
+}
+
+// ========================
+// CUSTOMERS
+// ========================
+model Customer {
+  id              String    @id @default(cuid())
+  name            String
+  email           String?
+  phone           String?
+  address         String?
+  accountBalance  Float     @default(0)  // For CREDIT invoices - always >= 0
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  invoices        Invoice[]
+  payments        CustomerPayment[]
+  returns         Return[]
+  creditTransactions CreditTransaction[]
+}
+
+// ========================
+// INVOICES & PAYMENTS
+// ========================
+enum InvoiceStatus {
+  PAID
+  PARTIAL
+  UNPAID
+}
+
+enum PaymentType {
+  CASH
+  CREDIT
+}
+
+enum DiscountType {
+  FIXED
+  PERCENTAGE
+}
+
+model Invoice {
+  id              String         @id @default(cuid())
+  invoiceNumber   String         @unique
+  customerId      String
+
+  // Payment details
+  paymentType     PaymentType
+  status          InvoiceStatus  @default(UNPAID)
+
+  // Discount
+  discountType    DiscountType?
+  discountValue   Float?         @default(0)
+
+  // Totals (stored in EGP - base currency)
+  subtotal        Float          @default(0)
+  finalTotal      Float          @default(0)
+  paidAmount      Float          @default(0)
+  remainingBalance Float         @default(0)
+
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // User who created the invoice
+  userId          String
+
+  // Relations
+  customer        Customer       @relation(fields: [customerId], references: [id])
+  user            User           @relation(fields: [userId], references: [id])
+  items           InvoiceItem[]
+  payments        Payment[]
+  returns         Return[]
+}
+
+model InvoiceItem {
+  id                String          @id @default(cuid())
+  invoiceId         String
+  productVariantId  String
+  quantity          Int
+  price             Float           // Price in EGP (base currency)
+  total             Float           // Total in EGP (base currency)
+  createdAt         DateTime        @default(now())
+
+  // Relations
+  invoice           Invoice         @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productVariant    ProductVariant  @relation(fields: [productVariantId], references: [id])
+}
+
+// ========================
+// RETURNS SYSTEM
+// ========================
+enum ReturnType {
+  DAMAGED
+  NON_DAMAGED
+}
+
+enum ReturnStatus {
+  COMPLETED
+  PENDING
+  CANCELLED
+}
+
+model Return {
+  id              String      @id @default(cuid())
+  invoiceId       String
+  customerId      String
+  userId          String
+  
+  returnDate      DateTime    @default(now())
+  totalAmount     Float       // Amount to be refunded/credited
+  status          ReturnStatus @default(COMPLETED)
+  type            ReturnType  @default(NON_DAMAGED) 
+  notes           String?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  invoice         Invoice     @relation(fields: [invoiceId], references: [id])
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  user            User        @relation(fields: [userId], references: [id])
+  items           ReturnItem[]
+  
+  @@index([invoiceId])
+  @@index([customerId])
+}
+
+model ReturnItem {
+  id                String          @id @default(cuid())
+  returnId          String
+  productVariantId  String
+  quantity          Int
+  price             Float           // Price at time of return (usually same as invoice)
+  total             Float
+  
+  createdAt         DateTime        @default(now())
+
+  // Relations
+  return            Return          @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  productVariant    ProductVariant  @relation(fields: [productVariantId], references: [id])
+}
+
+// Legacy Payment model - kept for CASH invoice payments
+model Payment {
+  id            String    @id @default(cuid())
+  invoiceId     String
+  amount        Float
+  paymentDate   DateTime  @default(now())
+  notes         String?
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  invoice       Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// New CustomerPayment model - for CREDIT invoice account system
+model CustomerPayment {
+  id            String    @id @default(cuid())
+  customerId    String
+  amount        Float     // Amount paid (reduces account balance)
+  paymentDate   DateTime  @default(now())
+  notes         String?
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  customer      Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([paymentDate])
+}
+
+// ========================
+// HISTORY / ACTIVITY LOG
+// ========================
+model History {
+  id            String    @id @default(cuid())
+  userId        String
+  action        String
+  entity        String?   // e.g., "Product", "Invoice", "Stock"
+  entityId      String?   // ID of the affected entity
+  details       String?   // JSON string with additional details
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+// ========================
+// CREDIT SYSTEM
+// ========================
+enum CreditTransactionType {
+  CASH_REFUND
+  INVOICE_PAYMENT
+  RETURN_REFUND
+  MANUAL_ADJUSTMENT
+}
+
+model CreditTransaction {
+  id              String                @id @default(cuid())
+  customerId      String
+  amount          Float                 // +ive adds to balance (reduces credit), -ive deducted
+  type            CreditTransactionType
+  description     String?
+  referenceId     String?               // ID of associated Invoice/Return
+  
+  userId          String
+  createdAt       DateTime              @default(now())
+
+  // Relations
+  customer        Customer              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user            User                  @relation(fields: [userId], references: [id])
+
+  @@index([customerId])
+  @@index([createdAt])
+}
