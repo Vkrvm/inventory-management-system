@@ -158,6 +158,13 @@ export default function Sidebar({ userRole }: SidebarProps) {
 
         <hr className="text-white-50 my-3" />
 
+        <Link
+          href="/dashboard/settings"
+          className={`nav-link ${isActive("/dashboard/settings") ? "active" : ""}`}
+        >
+          {t("nav.settings")}
+        </Link>
+
         <button
           onClick={() => signOut({ callbackUrl: "/auth/signin" })}
           className="nav-link btn btn-link text-start text-danger"

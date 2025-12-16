@@ -12,7 +12,7 @@ interface Customer {
   id: string;
   name: string;
   email: string | null;
-  phone: string | null;
+  phones: string[];
   address: string | null;
   accountBalance: number;
   createdAt: Date;
@@ -34,7 +34,7 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    phones: [""] as string[],
     address: "",
   });
 
@@ -47,14 +47,19 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
     e.preventDefault();
     setLoading(true);
 
-    const result = await createCustomer(formData);
+    const cleanedData = {
+      ...formData,
+      phones: formData.phones.filter(p => p.trim() !== "")
+    };
+
+    const result = await createCustomer(cleanedData);
 
     if (result.error) {
       setAlert({ type: "danger", message: result.error });
     } else {
       setAlert({ type: "success", message: t("customers.customerCreated") });
       setShowCreateModal(false);
-      setFormData({ name: "", email: "", phone: "", address: "" });
+      setFormData({ name: "", email: "", phones: [""], address: "" });
     }
 
     setLoading(false);
@@ -66,7 +71,12 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
 
     setLoading(true);
 
-    const result = await updateCustomer(selectedCustomer.id, formData);
+    const cleanedData = {
+      ...formData,
+      phones: formData.phones.filter(p => p.trim() !== "")
+    };
+
+    const result = await updateCustomer(selectedCustomer.id, cleanedData);
 
     if (result.error) {
       setAlert({ type: "danger", message: result.error });
@@ -74,7 +84,7 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
       setAlert({ type: "success", message: t("customers.customerUpdated") });
       setShowEditModal(false);
       setSelectedCustomer(null);
-      setFormData({ name: "", email: "", phone: "", address: "" });
+      setFormData({ name: "", email: "", phones: [""], address: "" });
     }
 
     setLoading(false);
@@ -85,7 +95,7 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
     setFormData({
       name: customer.name,
       email: customer.email || "",
-      phone: customer.phone || "",
+      phones: customer.phones && customer.phones.length > 0 ? customer.phones : [""],
       address: customer.address || "",
     });
     setShowEditModal(true);
@@ -132,6 +142,52 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
     setLoading(false);
   };
 
+  const handlePhoneChange = (index: number, value: string) => {
+    const newPhones = [...formData.phones];
+    newPhones[index] = value;
+    setFormData({ ...formData, phones: newPhones });
+  };
+
+  const addPhoneField = () => {
+    setFormData({ ...formData, phones: [...formData.phones, ""] });
+  };
+
+  const removePhoneField = (index: number) => {
+    if (formData.phones.length === 1) return; // Keep at least one
+    const newPhones = formData.phones.filter((_, i) => i !== index);
+    setFormData({ ...formData, phones: newPhones });
+  };
+
+  const renderPhoneInputs = (idPrefix: string) => (
+    <div className="mb-3">
+      <label className="form-label">
+        {t("customers.phone")}
+      </label>
+      {formData.phones.map((phone, index) => (
+        <div key={index} className="input-group mb-2">
+          <input
+            type="tel"
+            id={`${idPrefix}-phone-${index}`}
+            className="form-control"
+            value={phone}
+            onChange={(e) => handlePhoneChange(index, e.target.value)}
+            placeholder={t("customers.phone")}
+          />
+          {index === formData.phones.length - 1 && (
+            <button type="button" className="btn btn-outline-secondary" onClick={addPhoneField}>
+              <i className="bi bi-plus">+</i>
+            </button>
+          )}
+          {formData.phones.length > 1 && (
+            <button type="button" className="btn btn-outline-danger" onClick={() => removePhoneField(index)}>
+              <i className="bi bi-dash">-</i>
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <>
       {alert && (
@@ -177,7 +233,7 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
                       <strong>{customer.name}</strong>
                     </td>
                     <td>{customer.email || "-"}</td>
-                    <td>{customer.phone || "-"}</td>
+                    <td>{customer.phones && customer.phones.length > 0 ? customer.phones.join(", ") : "-"}</td>
                     <td>
                       <strong className={customer.accountBalance > 0 ? "text-danger" : "text-success"}>
                         <CurrencyAmount amount={customer.accountBalance} />
@@ -275,20 +331,9 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
                       }
                     />
                   </div>
-                  <div className="mb-3">
-                    <label htmlFor="customerPhone" className="form-label">
-                      {t("customers.phone")}
-                    </label>
-                    <input
-                      type="tel"
-                      id="customerPhone"
-                      className="form-control"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                    />
-                  </div>
+
+                  {renderPhoneInputs("create")}
+
                   <div className="mb-3">
                     <label htmlFor="customerAddress" className="form-label">
                       {t("customers.address")}
@@ -368,20 +413,9 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
                       }
                     />
                   </div>
-                  <div className="mb-3">
-                    <label htmlFor="editCustomerPhone" className="form-label">
-                      {t("customers.phone")}
-                    </label>
-                    <input
-                      type="tel"
-                      id="editCustomerPhone"
-                      className="form-control"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                    />
-                  </div>
+
+                  {renderPhoneInputs("edit")}
+
                   <div className="mb-3">
                     <label htmlFor="editCustomerAddress" className="form-label">
                       {t("customers.address")}

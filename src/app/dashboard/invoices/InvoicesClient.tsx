@@ -616,21 +616,6 @@ export default function InvoicesClient({ invoices, customers, products, warehous
                       <p className="mb-1">
                         <strong>{t("invoices.name")}:</strong> {selectedInvoice.customer.name}
                       </p>
-                      {selectedInvoice.customer.email && (
-                        <p className="mb-1">
-                          <strong>{t("invoices.email")}:</strong> {selectedInvoice.customer.email}
-                        </p>
-                      )}
-                      {selectedInvoice.customer.phone && (
-                        <p className="mb-1">
-                          <strong>{t("invoices.phone")}:</strong> {selectedInvoice.customer.phone}
-                        </p>
-                      )}
-                      {selectedInvoice.customer.address && (
-                        <p className="mb-1">
-                          <strong>{t("invoices.address")}:</strong> {selectedInvoice.customer.address}
-                        </p>
-                      )}
                     </div>
                   </div>
 

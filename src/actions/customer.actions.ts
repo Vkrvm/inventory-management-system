@@ -5,27 +5,41 @@ import { auth } from "@/lib/auth";
 import { logHistory } from "@/lib/history";
 import { UserRole } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+const customerSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email().optional().or(z.literal("")),
+  phones: z.array(z.string()).optional().default([]),
+  address: z.string().optional(),
+});
 
 export async function createCustomer(formData: {
   name: string;
   email?: string;
-  phone?: string;
+  phones?: string[];
   address?: string;
 }) {
   const session = await auth();
 
-  if (
-    !session?.user ||
-    ![UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER].includes(
-      session.user.role
-    )
-  ) {
+  if (!session?.user) {
     return { error: "Unauthorized" };
+  }
+
+  const result = customerSchema.safeParse(formData);
+
+  if (!result.success) {
+    return { error: result.error.errors[0].message };
   }
 
   try {
     const customer = await prisma.customer.create({
-      data: formData,
+      data: {
+        name: result.data.name,
+        email: result.data.email || null,
+        phones: result.data.phones,
+        address: result.data.address || null,
+      },
     });
 
     await logHistory({
@@ -49,32 +63,38 @@ export async function updateCustomer(
   formData: {
     name: string;
     email?: string;
-    phone?: string;
+    phones?: string[];
     address?: string;
   }
 ) {
   const session = await auth();
 
-  if (
-    !session?.user ||
-    ![UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER].includes(
-      session.user.role
-    )
-  ) {
+  if (!session?.user) {
     return { error: "Unauthorized" };
+  }
+
+  const result = customerSchema.safeParse(formData);
+
+  if (!result.success) {
+    return { error: result.error.errors[0].message };
   }
 
   try {
     const customer = await prisma.customer.update({
       where: { id },
-      data: formData,
+      data: {
+        name: result.data.name,
+        email: result.data.email || null,
+        phones: result.data.phones,
+        address: result.data.address || null,
+      },
     });
 
     await logHistory({
       userId: session.user.id,
       action: "UPDATE_CUSTOMER",
       entity: "Customer",
-      entityId: customer.id,
+      entityId: id,
       details: { name: customer.name },
     });
 

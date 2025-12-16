@@ -77,7 +77,7 @@ export default function DamagedItemsClient({ items }: { items: DamagedItem[] }) 
                                     <th>{t("products.brand")}</th>
                                     <th>{t("invoices.invoiceNumber")}</th>
                                     <th>{t("common.status")}</th>
-                                    <th>{t("invoices.price")} (Resale)</th>
+                                    <th>{t("invoices.price")} ({t("damagedItems.resale")})</th>
                                     <th>{t("common.actions")}</th>
                                 </tr>
                             </thead>
