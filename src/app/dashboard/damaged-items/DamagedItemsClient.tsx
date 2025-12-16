@@ -73,6 +73,7 @@ export default function DamagedItemsClient({ items }: { items: DamagedItem[] }) 
                                 <tr>
                                     <th>{t("common.date")}</th>
                                     <th>{t("products.productCode")}</th>
+                                    <th>{t("products.category")}</th>
                                     <th>{t("products.color")}</th>
                                     <th>{t("products.brand")}</th>
                                     <th>{t("invoices.invoiceNumber")}</th>
@@ -88,6 +89,9 @@ export default function DamagedItemsClient({ items }: { items: DamagedItem[] }) 
                                             <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                                             <td>
                                                 <span className="fw-bold">{item.productVariant.product.code}</span>
+                                            </td>
+                                            <td>
+                                                <span className="badge bg-info text-dark">{item.productVariant.product.category.name}</span>
                                             </td>
                                             <td>
                                                 <span className="badge bg-secondary">{item.productVariant.color}</span>
