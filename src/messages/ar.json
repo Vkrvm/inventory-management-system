@@ -42,7 +42,8 @@
     "lastUpdated": "آخر تحديث",
     "optionalNotes": "ملاحظات اختيارية",
     "amount": "المبلغ",
-    "noItemsFound": "لا توجد عناصر"
+    "noItemsFound": "لا توجد عناصر",
+    "category": "الفئة"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -248,7 +249,8 @@
     "addStock": "إضافة مخزون",
     "removeStock": "صرف مخزون",
     "transferStock": "نقل مخزون",
-    "allWarehouses": "كل المخازن"
+    "allWarehouses": "كل المخازن",
+    "selectCategory": "اختر الفئة..."
   },
   "customers": {
     "title": "إدارة العملاء",

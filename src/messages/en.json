@@ -42,7 +42,8 @@
     "lastUpdated": "Last Updated",
     "optionalNotes": "Optional notes",
     "amount": "Amount",
-    "noItemsFound": "No items found"
+    "noItemsFound": "No items found",
+    "category": "Category"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -247,7 +248,8 @@
     "addStock": "Add Stock",
     "removeStock": "Remove Stock",
     "transferStock": "Transfer Stock",
-    "allWarehouses": "All Warehouses"
+    "allWarehouses": "All Warehouses",
+    "selectCategory": "Select category..."
   },
   "customers": {
     "title": "Customer Management",
