@@ -1,6 +1,17 @@
-import { auth } from "@/lib/auth";
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
 import { NextResponse } from "next/server";
-import { UserRole } from "@prisma/client";
+
+const { auth } = NextAuth(authConfig);
+
+// Define roles locally to avoid importing from @prisma/client (heavy)
+const UserRole = {
+  SUPER_ADMIN: "SUPER_ADMIN",
+  ADMIN: "ADMIN",
+  MANAGER: "MANAGER",
+  SALES: "SALES",
+  WAREHOUSE: "WAREHOUSE",
+};
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -17,7 +28,7 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/auth/signin", req.url));
   }
 
-  const userRole = session.user.role;
+  const userRole = session.user.role as string;
 
   // User management routes - SUPER_ADMIN only
   if (pathname.startsWith("/dashboard/users")) {
