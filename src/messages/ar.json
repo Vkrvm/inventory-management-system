@@ -174,7 +174,9 @@
     "noWarehouses": "لا توجد مخازن. أضف مخزنك الأول!",
     "warehouseCreated": "تم إنشاء المخزن بنجاح!",
     "warehouseUpdated": "تم تحديث المخزن بنجاح!",
-    "warehouseDeleted": "تم حذف المخزن بنجاح!"
+    "warehouseDeleted": "تم حذف المخزن بنجاح!",
+    "mainProductWarehouse": "مخزن المنتجات الرئيسي",
+    "rawMaterialsWarehouse": "مخزن المواد الخام"
   },
   "materials": {
     "title": "إدارة المواد الخام",

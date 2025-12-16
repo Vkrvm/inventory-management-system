@@ -128,7 +128,13 @@ export default function WarehousesClient({ warehouses }: { warehouses: Warehouse
                 {warehouses.map((warehouse) => (
                   <tr key={warehouse.id}>
                     <td>
-                      <strong>{warehouse.name}</strong>
+                      <strong>
+                        {
+                          warehouse.name === "Main Product Warehouse" ? t("warehouses.mainProductWarehouse") :
+                            warehouse.name === "Raw Materials Warehouse" ? t("warehouses.rawMaterialsWarehouse") :
+                              warehouse.name
+                        }
+                      </strong>
                     </td>
                     <td>
                       <span

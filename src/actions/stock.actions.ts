@@ -202,7 +202,11 @@ export async function getStockByWarehouse() {
     const stocks = await prisma.stock.findMany({
       include: {
         warehouse: true,
-        material: true,
+        material: {
+          include: {
+            unit: true,
+          },
+        },
         productVariant: {
           include: {
             product: {

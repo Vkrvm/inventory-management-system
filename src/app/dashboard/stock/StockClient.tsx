@@ -23,6 +23,13 @@ interface Stock {
 export default function StockClient({ stocks, warehouses, materials, products, categories }: any) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"view" | "in" | "out" | "transfer">("view");
+
+  const getTranslatedWarehouseName = (name: string) => {
+    if (name === "Main Product Warehouse") return t("warehouses.mainProductWarehouse");
+    if (name === "Raw Materials Warehouse") return t("warehouses.rawMaterialsWarehouse");
+    return name;
+  };
+
   // Default to first warehouse if available
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>(warehouses.length > 0 ? warehouses[0].id : "");
 
@@ -256,7 +263,7 @@ export default function StockClient({ stocks, warehouses, materials, products, c
                     setFilterColor("");
                   }}
                 >
-                  {w.name}
+                  {getTranslatedWarehouseName(w.name)}
                 </button>
               </li>
             ))}
@@ -322,9 +329,13 @@ export default function StockClient({ stocks, warehouses, materials, products, c
                     {filteredStocks.map((stock: Stock) => (
                       <tr key={stock.id}>
                         <td>
-                          <strong>{stock.warehouse.name}</strong>
+                          <strong>{getTranslatedWarehouseName(stock.warehouse.name)}</strong>
                           <br />
-                          <span className="badge bg-secondary">{stock.warehouse.type}</span>
+                          <span className="badge bg-secondary">
+                            {stock.warehouse.type === "PRODUCT"
+                              ? t("warehouses.productWarehouse")
+                              : t("warehouses.materialWarehouse")}
+                          </span>
                         </td>
                         <td>
                           {stock.material && <span>{stock.material.name}</span>}
@@ -374,7 +385,7 @@ export default function StockClient({ stocks, warehouses, materials, products, c
                     <option value="">{t("stock.selectWarehouse")}</option>
                     {warehouses.map((w: any) => (
                       <option key={w.id} value={w.id}>
-                        {w.name} ({w.type})
+                        {getTranslatedWarehouseName(w.name)} ({w.type})
                       </option>
                     ))}
                   </select>
@@ -479,7 +490,7 @@ export default function StockClient({ stocks, warehouses, materials, products, c
                     <option value="">{t("stock.selectWarehouse")}</option>
                     {warehouses.map((w: any) => (
                       <option key={w.id} value={w.id}>
-                        {w.name} ({w.type})
+                        {getTranslatedWarehouseName(w.name)} ({w.type})
                       </option>
                     ))}
                   </select>
@@ -584,7 +595,7 @@ export default function StockClient({ stocks, warehouses, materials, products, c
                     <option value="">{t("stock.selectSourceWarehouse")}</option>
                     {warehouses.map((w: any) => (
                       <option key={w.id} value={w.id}>
-                        {w.name} ({w.type})
+                        {getTranslatedWarehouseName(w.name)} ({w.type})
                       </option>
                     ))}
                   </select>
@@ -595,7 +606,7 @@ export default function StockClient({ stocks, warehouses, materials, products, c
                     <option value="">{t("stock.selectDestinationWarehouse")}</option>
                     {warehouses.map((w: any) => (
                       <option key={w.id} value={w.id} disabled={w.id === transferForm.warehouseFromId}>
-                        {w.name} ({w.type})
+                        {getTranslatedWarehouseName(w.name)} ({w.type})
                       </option>
                     ))}
                   </select>

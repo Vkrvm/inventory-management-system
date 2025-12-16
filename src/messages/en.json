@@ -173,7 +173,9 @@
     "noWarehouses": "No warehouses found. Create your first warehouse!",
     "warehouseCreated": "Warehouse created successfully!",
     "warehouseUpdated": "Warehouse updated successfully!",
-    "warehouseDeleted": "Warehouse deleted successfully!"
+    "warehouseDeleted": "Warehouse deleted successfully!",
+    "mainProductWarehouse": "Main Product Warehouse",
+    "rawMaterialsWarehouse": "Raw Materials Warehouse"
   },
   "materials": {
     "title": "Material Management",
